@@ -35,6 +35,7 @@
           temperature: options.temperature ?? settings.temperature ?? 0.8,
           max_tokens: options.maxTokens ?? settings.maxTokens ?? 4096,
           stream: false,
+          thinking: { type: 'disabled' },
         };
   
         const headers = { 'Content-Type': 'application/json' };

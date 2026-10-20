@@ -182,6 +182,7 @@
         const footerHTML = `
           <button class="vn-btn" id="ch-save-btn">💾 保存修改</button>
           <button class="vn-btn" id="ch-convert-btn">🤖 AI 转换</button>
+          <button class="vn-btn" id="ch-markers-btn" ${hasScript ? '' : 'disabled'}>🎨 场景 & 音乐</button>
           <button class="vn-btn primary" id="ch-play-btn" ${hasScript ? '' : 'disabled'}>▶️ 播放</button>
           <button class="vn-btn danger" id="ch-del-btn">🗑️ 删除</button>
         `;
@@ -204,11 +205,10 @@
               Modal.close();
               this.render();
             };
-  
+          
             // 播放
             const playBtn = modal.querySelector('#ch-play-btn');
             playBtn.onclick = () => {
-              // 先保存一次
               const script = modal.querySelector('#ch-script-edit').value;
               if (!script.trim()) {
                 alert('还没有脚本');
@@ -220,19 +220,33 @@
               Modal.close();
               window.VNPlayer.play(script, ch.title);
             };
-  
-            // AI 转换（下一轮接 converter.js）
+          
+            // AI 转换
             modal.querySelector('#ch-convert-btn').onclick = () => {
-                if (!window.Converter) {
-                  alert('转换模块未加载');
-                  return;
-                }
+              if (!window.Converter) {
+                alert('转换模块未加载');
+                return;
+              }
+              Modal.close();
+              setTimeout(() => {
+                window.Converter.convertChapter(chapterId);
+              }, 50);
+            };
+          
+            // ★ 场景 & 音乐校对（放到顶层，和其他按钮并列）
+            const markersBtn = modal.querySelector('#ch-markers-btn');
+            if (markersBtn) {
+              markersBtn.onclick = () => {
+                // 先保存当前脚本编辑框内容，避免丢失
+                const script = modal.querySelector('#ch-script-edit').value;
+                State.updateChapter(chapterId, { script });
                 Modal.close();
                 setTimeout(() => {
-                  window.Converter.convertChapter(chapterId);
+                  window.VNMarkersUI.open(chapterId);
                 }, 50);
               };
-  
+            }
+          
             // 删除
             modal.querySelector('#ch-del-btn').onclick = () => {
               if (!confirm(`确定删除「${ch.title}」？`)) return;

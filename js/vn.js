@@ -377,6 +377,8 @@
         const item = this.timeline[this.index];
 
         if (item.type === 'bg') {
+          // 背景切换 = 场景切换 → 清空上一个场景的立绘
+          this.clearSprites();
           await BG.apply(item.name);
           this.index++;
           continue;
