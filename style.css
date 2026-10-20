@@ -1,0 +1,674 @@
+/* ============================================================
+   VN Reader · 主样式
+   ============================================================ */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  background: #000;
+  color: #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC",
+    "Microsoft YaHei", "Segoe UI", sans-serif;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* ==================== 屏幕切换 ==================== */
+.vn-screen {
+  position: fixed;
+  inset: 0;
+  display: none;
+  overflow: hidden;
+}
+.vn-screen.active {
+  display: block;
+}
+
+/* ==================== 书架 ==================== */
+#vn-bookshelf {
+  overflow-y: auto;
+  background: linear-gradient(135deg, #0a0a12, #1a1020 50%, #0f0a18);
+  padding: 20px;
+}
+
+.vn-shelf-header {
+  max-width: 900px;
+  margin: 0 auto 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.vn-shelf-header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #e8d8a8;
+  letter-spacing: 1px;
+}
+.vn-shelf-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.vn-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e0e0e0;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+.vn-btn:hover {
+  background: rgba(120, 150, 255, 0.2);
+  border-color: rgba(120, 150, 255, 0.5);
+}
+.vn-btn.primary {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border: none;
+  color: #fff;
+  font-weight: 600;
+}
+.vn-btn.danger {
+  color: #d87d7d;
+  border-color: rgba(216, 125, 125, 0.4);
+}
+
+.vn-chapter-list {
+  max-width: 900px;
+  margin: 0 auto;
+  display: grid;
+  gap: 12px;
+  padding-bottom: 40px;
+}
+
+.vn-chapter-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+.vn-chapter-card:hover {
+  background: rgba(120, 150, 255, 0.1);
+  border-color: rgba(120, 150, 255, 0.35);
+  transform: translateY(-1px);
+}
+.vn-chapter-card .vn-ch-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 6px;
+}
+.vn-chapter-card .vn-ch-meta {
+  font-size: 12px;
+  color: #888;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.vn-chapter-card .vn-ch-status {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #888;
+}
+.vn-chapter-card .vn-ch-status.ready {
+  background: rgba(125, 216, 125, 0.15);
+  color: #7dd87d;
+}
+.vn-chapter-card .vn-ch-status.converting {
+  background: rgba(216, 192, 125, 0.15);
+  color: #d8c07d;
+}
+
+.vn-empty-hint {
+  text-align: center;
+  padding: 80px 20px;
+  color: #555;
+  font-size: 14px;
+  line-height: 2;
+}
+.vn-empty-hint .vn-big-icon {
+  font-size: 56px;
+  display: block;
+  margin-bottom: 16px;
+}
+
+/* ==================== VN 舞台 ==================== */
+#vn-stage {
+  background: #000;
+}
+
+/* ---------- 背景层 ---------- */
+#vn-bg-layer {
+  position: absolute;
+  inset: 0;
+  background: #000;
+}
+#vn-bg-layer > .vn-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+#vn-bg-layer > .vn-bg.show {
+  opacity: 1;
+}
+
+#vn-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 30%,
+    rgba(0, 0, 0, 0.5) 100%
+  );
+  z-index: 2;
+}
+
+/* ============================================================
+   立绘槽位 —— 位置写死，禁止撑满
+   ============================================================ */
+
+   #vn-stage #vn-sprite-layer {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 3 !important;
+    pointer-events: none !important;
+    overflow: visible !important;
+  }
+  
+  #vn-stage .vn-sprite-slot {
+    position: absolute !important;
+    bottom: 0 !important;
+    top: auto !important;
+    height: 88% !important;
+    width: 32% !important;        /* ★ 写死，禁止 auto */
+    display: flex !important;
+    align-items: flex-end !important;
+    justify-content: center !important;
+    pointer-events: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: none !important;
+    overflow: visible !important;
+  }
+  
+  /* 左 */
+  #vn-stage .vn-sprite-slot[data-pos="left"] {
+    left: 2% !important;
+    right: auto !important;
+    width: 32% !important;
+  }
+  
+  /* 中 */
+  #vn-stage .vn-sprite-slot[data-pos="center"] {
+    left: 34% !important;
+    right: auto !important;
+    width: 32% !important;
+  }
+  
+  /* 右 */
+  #vn-stage .vn-sprite-slot[data-pos="right"] {
+    left: auto !important;
+    right: 2% !important;
+    width: 32% !important;
+  }
+  
+  /* 图片 */
+  #vn-stage .vn-sprite-slot img.vn-sprite {
+    display: block !important;
+    max-height: 100% !important;
+    max-width: 100% !important;
+    width: auto !important;
+    height: auto !important;
+    object-fit: contain !important;
+    object-position: bottom center !important;
+    filter: drop-shadow(0 10px 30px rgba(0,0,0,.6));
+    transition: opacity .3s ease, filter .3s ease, transform .3s ease;
+    pointer-events: none !important;
+    user-select: none !important;
+    -webkit-user-drag: none !important;
+  }
+  
+  #vn-stage .vn-sprite-slot img.vn-sprite.is-listening {
+    filter: brightness(.65) saturate(.8) drop-shadow(0 10px 30px rgba(0,0,0,.6)) !important;
+  }
+  
+  #vn-stage .vn-sprite-slot img.vn-sprite.is-speaking {
+    filter: brightness(1.05) drop-shadow(0 10px 30px rgba(0,0,0,.6)) !important;
+    transform: translateY(-4px) !important;
+  }
+  
+  #vn-stage .vn-sprite-slot img.vn-sprite.is-hover,
+  #vn-stage .vn-sprite-slot img.vn-sprite.is-hover.is-listening {
+    filter: brightness(1.12) drop-shadow(0 10px 30px rgba(120,150,255,.5)) !important;
+  }
+  
+  #vn-stage .vn-sprite-slot img.vn-sprite.hidden-state {
+    opacity: 0 !important;
+  }
+  
+  #vn-stage .vn-sprite-placeholder {
+    width: 200px !important;
+    height: 300px !important;
+    border-radius: 16px !important;
+    background: linear-gradient(135deg, rgba(102,126,234,.25), rgba(118,75,162,.25)) !important;
+    border: 1px dashed rgba(255,255,255,.2) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: rgba(255,255,255,.5) !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    pointer-events: none !important;
+    flex-shrink: 0 !important;
+  }
+
+/* ---------- 对话框 ---------- */
+#vn-dialogue-box {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%) translateY(20px);
+  width: min(880px, 92vw);
+  min-height: 160px;
+  padding: 22px 28px 28px;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 15, 25, 0.92),
+    rgba(10, 10, 18, 0.96)
+  );
+  border: 1px solid rgba(120, 150, 255, 0.25);
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  z-index: 5;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+#vn-dialogue-box.active {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+#vn-speaker {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffd76b;
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
+  min-height: 22px;
+}
+#vn-speaker.narrator {
+  color: #a8a8c0;
+  font-style: italic;
+  font-weight: 500;
+}
+
+#vn-text {
+  font-size: 24px;
+  line-height: 1.9;
+  color: #e8e8f0;
+  min-height: 60px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+#vn-text.narrator {
+  color: #b8b8c8;
+  font-style: italic;
+  text-align: center;
+  padding: 4px 20px;
+}
+
+#vn-hint {
+  position: absolute;
+  right: 20px;
+  bottom: 8px;
+  font-size: 11px;
+  color: #666;
+  animation: vn-blink 1.6s ease-in-out infinite;
+}
+@keyframes vn-blink {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+/* 打字机光标 */
+#vn-text.typing::after {
+  content: "▋";
+  display: inline-block;
+  margin-left: 2px;
+  animation: vn-cursor 0.6s step-end infinite;
+  color: #7da8ff;
+}
+@keyframes vn-cursor {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ---------- 顶部工具条 ---------- */
+#vn-topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent);
+  z-index: 6;
+  color: #fff;
+}
+#vn-chapter-title {
+  flex: 1;
+  font-size: 13px;
+  color: #ccc;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+}
+.vn-topbar-right {
+  display: flex;
+  gap: 6px;
+}
+
+.vn-icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  cursor: pointer;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  padding: 0;
+}
+.vn-icon-btn:hover {
+  background: rgba(120, 150, 255, 0.3);
+  border-color: rgba(120, 150, 255, 0.5);
+}
+
+/* ---------- 选项层 ---------- */
+#vn-options-layer {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(4px);
+  z-index: 8;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 20px;
+}
+#vn-options-layer.active {
+  display: flex;
+}
+
+.vn-option {
+  width: min(680px, 92vw);
+  padding: 18px 24px;
+  background: linear-gradient(
+    135deg,
+    rgba(40, 40, 60, 0.85),
+    rgba(25, 25, 40, 0.95)
+  );
+  border: 1px solid rgba(120, 150, 255, 0.3);
+  border-radius: 12px;
+  color: #e8e8f0;
+  font-size: 15px;
+  line-height: 1.5;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  position: relative;
+}
+.vn-option:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(120, 150, 255, 0.25),
+    rgba(80, 100, 200, 0.2)
+  );
+  border-color: rgba(120, 150, 255, 0.65);
+  transform: translateX(6px);
+}
+.vn-option .vn-opt-key {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+  text-align: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  margin-right: 14px;
+  flex-shrink: 0;
+}
+.vn-option .vn-opt-text {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* ---------- 加载 ---------- */
+#vn-loading {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  z-index: 10;
+}
+#vn-loading.active {
+  display: flex;
+}
+
+.vn-spinner {
+  width: 44px;
+  height: 44px;
+  border: 3px solid rgba(120, 150, 255, 0.2);
+  border-top-color: #7da8ff;
+  border-radius: 50%;
+  animation: vn-spin 0.8s linear infinite;
+}
+@keyframes vn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+#vn-loading-text {
+  color: #aaa;
+  font-size: 13px;
+}
+
+/* ==================== 模态框 ==================== */
+#vn-modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
+  z-index: 9999;
+  display: none;
+}
+#vn-modal-mask.active {
+  display: block;
+}
+
+#vn-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(720px, 92vw);
+  max-height: 85vh;
+  background: linear-gradient(180deg, #1a1a28, #12121c);
+  border: 1px solid rgba(120, 150, 255, 0.3);
+  border-radius: 16px;
+  z-index: 10000;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+}
+#vn-modal.active {
+  display: flex;
+}
+
+.vn-modal-header {
+  padding: 18px 22px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.vn-modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+.vn-modal-close {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ccc;
+  cursor: pointer;
+  font-size: 16px;
+}
+.vn-modal-close:hover {
+  background: rgba(216, 125, 125, 0.3);
+  color: #fff;
+}
+
+.vn-modal-body {
+  padding: 20px 22px;
+  overflow-y: auto;
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.vn-modal-footer {
+  padding: 14px 22px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* 表单 */
+.vn-field {
+  margin-bottom: 16px;
+}
+.vn-field label {
+  display: block;
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 6px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+.vn-input,
+.vn-textarea,
+.vn-select {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: #e0e0e0;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.vn-input:focus,
+.vn-textarea:focus,
+.vn-select:focus {
+  border-color: rgba(120, 150, 255, 0.6);
+}
+.vn-textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.6;
+}
+.vn-hint {
+  font-size: 11px;
+  color: #666;
+  margin-top: 4px;
+  line-height: 1.6;
+}
+
+/* ==================== 移动端 ==================== */
+@media (max-width: 640px) {
+  #vn-dialogue-box {
+    bottom: 16px;
+    padding: 18px 20px 22px;
+    min-height: 130px;
+  }
+  #vn-text {
+    font-size: 15px;
+  }
+  #vn-speaker {
+    font-size: 15px;
+  }
+  .vn-sprite-slot {
+    width: 55%;
+  }
+  .vn-sprite-slot[data-pos="center"] {
+    width: 65%;
+  }
+  #vn-topbar {
+    padding: 8px 10px;
+  }
+  #vn-chapter-title {
+    font-size: 12px;
+  }
+}

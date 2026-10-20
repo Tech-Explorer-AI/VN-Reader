@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>VN Reader</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ==================== 主容器 ==================== -->
+<div id="vn-root">
+
+  <!-- ---------- 书架/章节目录（默认显示） ---------- -->
+  <div id="vn-bookshelf" class="vn-screen active">
+    <div class="vn-shelf-header">
+      <h1>📖 VN Reader</h1>
+      <div class="vn-shelf-actions">
+        <button class="vn-btn" id="btn-import-txt">📥 导入 TXT</button>
+        <button class="vn-btn" id="btn-add-chapter">➕ 手动加章</button>
+        <button class="vn-btn" id="btn-open-settings">⚙️ 设置</button>
+      </div>
+    </div>
+    <div id="vn-chapter-list" class="vn-chapter-list">
+      <!-- 章节卡片由 chapters.js 渲染 -->
+    </div>
+    <input type="file" id="vn-file-input" accept=".txt" hidden>
+  </div>
+
+  <!-- ---------- VN 播放界面 ---------- -->
+  <div id="vn-stage" class="vn-screen">
+
+    <!-- 背景层（可叠多层做淡入淡出） -->
+    <div id="vn-bg-layer"></div>
+    <!-- 氛围遮罩 -->
+    <div id="vn-vignette"></div>
+
+    <!-- 立绘层：左中右三槽 -->
+    <div id="vn-sprite-layer">
+      <div class="vn-sprite-slot" data-pos="left"></div>
+      <div class="vn-sprite-slot" data-pos="center"></div>
+      <div class="vn-sprite-slot" data-pos="right"></div>
+    </div>
+
+    <!-- 对话框 -->
+    <div id="vn-dialogue-box">
+      <div id="vn-speaker"></div>
+      <div id="vn-text"></div>
+      <div id="vn-hint">点击继续 ▶</div>
+    </div>
+
+    <!-- 顶部工具条 -->
+    <div id="vn-topbar">
+      <button class="vn-icon-btn" id="btn-back-shelf" title="返回书架">←</button>
+      <div id="vn-chapter-title"></div>
+      <div class="vn-topbar-right">
+        <button class="vn-icon-btn" id="btn-replay" title="重播">🔁</button>
+        <button class="vn-icon-btn" id="btn-skip" title="跳过">⏭</button>
+        <button class="vn-icon-btn" id="btn-fullscreen" title="全屏">⛶</button>
+      </div>
+    </div>
+
+    <!-- 选项弹层 -->
+    <div id="vn-options-layer"></div>
+
+    <!-- 加载遮罩 -->
+    <div id="vn-loading"><div class="vn-spinner"></div><div id="vn-loading-text">加载中…</div></div>
+  </div>
+
+</div>
+
+<!-- ==================== 通用模态框 ==================== -->
+<div id="vn-modal-mask"></div>
+<div id="vn-modal"></div>
+
+<!-- ==================== 脚本 ==================== -->
+<script src="js/state.js"></script>
+<script src="js/sprites.js"></script>
+<script src="js/vn.js"></script>
+<script src="js/api.js"></script>
+<script src="js/chapters.js"></script>
+<script src="js/converter.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/tts/core.js"></script>
+<script src="js/tts/router.js"></script>
+<script src="js/tts/player.js"></script>
+<script src="js/tts/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
