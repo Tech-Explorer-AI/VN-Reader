@@ -187,105 +187,96 @@ body {
 }
 
 /* ============================================================
-   立绘槽位 —— 位置写死，禁止撑满
+   立绘层 —— galgame 标准布局
+   每个槽位 = 一个以"屏幕水平百分比中心"定位的容器
+   图片在容器内水平居中、底部贴底
    ============================================================ */
 
    #vn-stage #vn-sprite-layer {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    z-index: 3 !important;
-    pointer-events: none !important;
-    overflow: visible !important;
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    overflow: visible;
   }
   
-  #vn-stage .vn-sprite-slot {
-    position: absolute !important;
-    bottom: 0 !important;
-    top: auto !important;
-    height: 88% !important;
-    width: 32% !important;        /* ★ 写死，禁止 auto */
-    display: flex !important;
-    align-items: flex-end !important;
-    justify-content: center !important;
-    pointer-events: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    transform: none !important;
-    overflow: visible !important;
-  }
+  /* 槽位：宽度用 vw 百分比，left 用中心点百分比 + translateX(-50%) */
+/* 桌面 */
+#vn-stage .vn-sprite-slot {
+  position: absolute;
+  bottom: 180px;                          /* 抬到对话框上沿 */
+  height: calc(100% - 200px);             /* 顶部留 20px 余量 */
+  width: 50vw;
+  max-width: 50vh;
+  display: flex;
+  align-items: flex-end;                  /* 图片在槽位内贴底 = 脚底在对话框上沿 */
+  justify-content: center;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
   
-  /* 左 */
+  /* 左：屏幕 25% 处为中心 */
   #vn-stage .vn-sprite-slot[data-pos="left"] {
-    left: 2% !important;
-    right: auto !important;
-    width: 32% !important;
+    left: 25%;
   }
   
-  /* 中 */
+  /* 中：屏幕 50% 处为中心 */
   #vn-stage .vn-sprite-slot[data-pos="center"] {
-    left: 34% !important;
-    right: auto !important;
-    width: 32% !important;
+    left: 50%;
   }
   
-  /* 右 */
+  /* 右：屏幕 75% 处为中心 */
   #vn-stage .vn-sprite-slot[data-pos="right"] {
-    left: auto !important;
-    right: 2% !important;
-    width: 32% !important;
+    left: 75%;
   }
   
-  /* 图片 */
+  /* 图片：等比缩放，底部对齐，水平居中 */
   #vn-stage .vn-sprite-slot img.vn-sprite {
-    display: block !important;
-    max-height: 100% !important;
-    max-width: 100% !important;
-    width: auto !important;
-    height: auto !important;
-    object-fit: contain !important;
-    object-position: bottom center !important;
-    filter: drop-shadow(0 10px 30px rgba(0,0,0,.6));
-    transition: opacity .3s ease, filter .3s ease, transform .3s ease;
-    pointer-events: none !important;
-    user-select: none !important;
-    -webkit-user-drag: none !important;
+    display: block;
+    max-height: 100%;
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    object-position: bottom center;
+    filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.6));
+    transition: opacity 0.3s ease, filter 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-drag: none;
   }
   
+  /* 状态滤镜（保留原来的视觉逻辑） */
   #vn-stage .vn-sprite-slot img.vn-sprite.is-listening {
-    filter: brightness(.65) saturate(.8) drop-shadow(0 10px 30px rgba(0,0,0,.6)) !important;
+    filter: brightness(0.65) saturate(0.8) drop-shadow(0 10px 30px rgba(0,0,0,.6));
   }
-  
   #vn-stage .vn-sprite-slot img.vn-sprite.is-speaking {
-    filter: brightness(1.05) drop-shadow(0 10px 30px rgba(0,0,0,.6)) !important;
-    transform: translateY(-4px) !important;
+    filter: brightness(1.05) drop-shadow(0 10px 30px rgba(0,0,0,.6));
+    transform: translateY(-4px);
   }
-  
   #vn-stage .vn-sprite-slot img.vn-sprite.is-hover,
   #vn-stage .vn-sprite-slot img.vn-sprite.is-hover.is-listening {
-    filter: brightness(1.12) drop-shadow(0 10px 30px rgba(120,150,255,.5)) !important;
+    filter: brightness(1.12) drop-shadow(0 10px 30px rgba(120,150,255,.5));
   }
-  
   #vn-stage .vn-sprite-slot img.vn-sprite.hidden-state {
-    opacity: 0 !important;
+    opacity: 0;
   }
   
+  /* 占位符也跟着居中 */
   #vn-stage .vn-sprite-placeholder {
-    width: 200px !important;
-    height: 300px !important;
-    border-radius: 16px !important;
-    background: linear-gradient(135deg, rgba(102,126,234,.25), rgba(118,75,162,.25)) !important;
-    border: 1px dashed rgba(255,255,255,.2) !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    color: rgba(255,255,255,.5) !important;
-    font-size: 18px !important;
-    font-weight: 600 !important;
-    pointer-events: none !important;
-    flex-shrink: 0 !important;
+    width: 200px;
+    height: 300px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(102,126,234,.25), rgba(75,162,118,.25));
+    border: 1px dashed rgba(255,255,255,.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,.5);
+    font-size: 18px;
+    font-weight: 600;
+    pointer-events: none;
+    flex-shrink: 0;
   }
 
 /* ---------- 对话框 ---------- */
@@ -333,7 +324,7 @@ body {
 }
 
 #vn-text {
-  font-size: 24px;
+  font-size: 20px;
   line-height: 1.9;
   color: #e8e8f0;
   min-height: 60px;
@@ -670,5 +661,11 @@ body {
   }
   #vn-chapter-title {
     font-size: 12px;
+  }
+  #vn-stage .vn-sprite-slot {
+    bottom: 150px;
+    height: calc(100% - 170px);
+    width: 52vw;
+    max-width: 46vh;
   }
 }
