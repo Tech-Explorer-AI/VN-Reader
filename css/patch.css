@@ -1,0 +1,323 @@
+/* ============================================================
+   VN Reader · patch.css
+   劫持层：修背景切换动画 + 手机/平板响应式 + 手机单立绘
+   加载顺序必须在 style.css 之后
+   ============================================================ */
+
+/* ============================================================
+   一、背景：纯 opacity 交叉淡入（修卡顿）
+   ============================================================ */
+   #vn-stage #vn-bg-layer > .vn-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: opacity;
+    backface-visibility: hidden;
+  }
+  #vn-stage #vn-bg-layer > .vn-bg.show { opacity: 1; }
+  #vn-stage #vn-bg-layer > .vn-bg.leaving {
+    opacity: 0;
+    transition: opacity 0.28s ease-in;
+  }
+  
+  /* ============================================================
+     二、对话 / 选项过渡统一 ease-out
+     ============================================================ */
+  #vn-dialogue-box {
+    transition: opacity 0.28s ease-out, transform 0.28s ease-out;
+  }
+  #vn-options-layer {
+    transition: opacity 0.22s ease-out;
+  }
+  
+  /* ============================================================
+     三、平板（641 ~ 1024）：三槽保留，尺寸微调
+     注意：style.css 槽位自带 transform:translateX(-50%)，
+           patch 绝不重复写 transform
+     ============================================================ */
+  @media (min-width: 641px) and (max-width: 1024px) {
+    #vn-stage .vn-sprite-slot[data-pos="left"] {
+      left: 22% !important;
+    }
+    #vn-stage .vn-sprite-slot[data-pos="center"] {
+      left: 50% !important;
+    }
+    #vn-stage .vn-sprite-slot[data-pos="right"] {
+      left: 78% !important;
+    }
+  
+    #vn-dialogue-box {
+      width: min(760px, 94vw);
+      bottom: 20px;
+      padding: 20px 26px 26px;
+      min-height: 150px;
+    }
+    #vn-text    { font-size: 18px; line-height: 1.85; }
+    #vn-speaker { font-size: 18px; }
+    #vn-topbar  { padding: 10px 14px; }
+  }
+  
+  /* ============================================================
+     四、手机竖屏（≤640）：单立绘
+     - 左右槽隐藏
+     - center 槽撑满，干掉 style.css 的 max-width:46vh
+     - 不写 transform（style.css 已 translateX(-50%)）
+     ============================================================ */
+  @media (max-width: 640px) {
+    #vn-stage .vn-sprite-slot[data-pos="left"],
+    #vn-stage .vn-sprite-slot[data-pos="right"] {
+      display: none !important;
+    }
+  
+    #vn-stage .vn-sprite-slot[data-pos="center"] {
+      left: 50% !important;
+      /* 不写 transform */
+      width: 90vw !important;
+      max-width: none !important;              /* ★ 关键：解除 46vh 压制 */
+      height: calc(100% - 140px) !important;
+      bottom: 120px !important;
+      top: auto !important;
+    }
+  
+    /* 对话框 */
+    #vn-dialogue-box {
+      width: 94vw;
+      bottom: 12px;
+      padding: 16px 18px 22px;
+      min-height: 120px;
+      border-radius: 12px;
+    }
+    #vn-text    { font-size: 16px; line-height: 1.8; min-height: 44px; }
+    #vn-speaker { font-size: 16px; margin-bottom: 6px; }
+  
+    /* 顶栏 */
+    #vn-topbar { padding: 8px 10px; gap: 8px; }
+    #vn-chapter-title { font-size: 12px; }
+    .vn-icon-btn { width: 30px; height: 30px; font-size: 13px; }
+  
+    /* 选项 */
+    .vn-option { width: 94vw; padding: 14px 18px; font-size: 14px; }
+  }
+  
+  /* ============================================================
+     五、超小屏（≤400）：单立绘再放大
+     ============================================================ */
+  @media (max-width: 400px) {
+    #vn-stage .vn-sprite-slot[data-pos="left"],
+    #vn-stage .vn-sprite-slot[data-pos="right"] {
+      display: none !important;
+    }
+  
+    #vn-stage .vn-sprite-slot[data-pos="center"] {
+      left: 50% !important;
+      width: 94vw !important;
+      max-width: none !important;
+      height: calc(100% - 130px) !important;
+      bottom: 110px !important;
+      top: auto !important;
+    }
+  
+    #vn-dialogue-box { min-height: 110px; }
+    #vn-text { font-size: 15px; }
+  }
+  
+  /* ============================================================
+     六、手机横屏（矮屏）：单立绘
+     ============================================================ */
+  @media (max-height: 500px) and (orientation: landscape) {
+    #vn-stage .vn-sprite-slot[data-pos="left"],
+    #vn-stage .vn-sprite-slot[data-pos="right"] {
+      display: none !important;
+    }
+  
+    #vn-stage .vn-sprite-slot[data-pos="center"] {
+      left: 50% !important;
+      width: 50vw !important;
+      max-width: 80vh !important;
+      height: calc(100% - 80px) !important;
+      bottom: 80px !important;
+      top: auto !important;
+    }
+  
+    #vn-dialogue-box {
+      bottom: 8px;
+      min-height: 100px;
+      padding: 12px 18px 18px;
+    }
+    #vn-text { font-size: 14px; line-height: 1.7; }
+  }
+  
+  /* ============================================================
+     七、手机模态框：内容优先 + 格子按钮
+     ============================================================ */
+  @media (max-width: 640px) {
+    #vn-modal {
+      width: 94vw;
+      max-height: 90vh;
+      border-radius: 12px;
+    }
+    .vn-modal-header { padding: 12px 14px; }
+    .vn-modal-title  { font-size: 15px; }
+    .vn-modal-close  { width: 32px; height: 32px; }
+  
+    /* body 占满剩余高度，内部滚动 */
+    .vn-modal-body {
+      padding: 12px 14px;
+      font-size: 13px;
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+  
+    /* 底部：紧凑格子按钮 */
+    .vn-modal-footer {
+      padding: 8px 12px;
+      flex-shrink: 0;
+      display: grid !important;
+      grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+      gap: 6px;
+      justify-content: stretch;
+      align-items: stretch;
+      border-top: 1px solid rgba(255,255,255,.08);
+    }
+    .vn-modal-footer .vn-btn {
+      flex: none;
+      min-width: 0;
+      padding: 8px 4px;
+      font-size: 10px;
+      line-height: 1.25;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      min-height: 40px;
+    }
+  
+    /* 表单两列 → 一列 */
+    .vn-modal-body [style*="grid-template-columns:1fr 1fr"],
+    .vn-modal-body [style*="grid-template-columns:2fr 1fr"] {
+      grid-template-columns: 1fr !important;
+    }
+  
+    /* 输入框：16px 防 iOS 缩放 */
+    .vn-input,
+    .vn-textarea,
+    .vn-select {
+      font-size: 16px;
+      padding: 10px 12px;
+    }
+  
+    /* 章节编辑：脚本占主位 */
+    .vn-modal-body .vn-field { margin-bottom: 10px; }
+    .vn-modal-body .vn-script-field {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 0 !important;
+    }
+    .vn-script-field #ch-script-edit {
+      flex: 1 1 auto;
+      min-height: 0 !important;
+      resize: none;
+      font-size: 12px !important;
+      line-height: 1.5;
+    }
+  
+    /* 原文折叠 */
+    .vn-raw-details {
+      margin-bottom: 10px;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: rgba(0,0,0,.15);
+    }
+    .vn-raw-details summary {
+      font-size: 12px;
+      color: #888;
+      cursor: pointer;
+    }
+    .vn-raw-details #ch-raw-edit {
+      min-height: 80px !important;
+      max-height: 20vh;
+      font-size: 13px !important;
+      margin-top: 6px;
+    }
+  
+    /* 导入预览列表 */
+    .vn-modal-body [style*="max-height:400px"] {
+      max-height: 55vh !important;
+    }
+  
+    /* 设置面板里的按钮组：格子化 */
+    .vn-modal-body div[style*="display:flex"][style*="gap:8px"] {
+      display: grid !important;
+      grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)) !important;
+      gap: 6px !important;
+    }
+    .vn-modal-body div[style*="display:flex"][style*="gap:8px"] > .vn-btn {
+      padding: 8px 4px;
+      font-size: 12px;
+      min-height: 40px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  
+    /* TTS 区段按钮组 */
+    #tts-section-root > div[style*="display:flex"] {
+      display: grid !important;
+      grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)) !important;
+      gap: 6px !important;
+    }
+    #tts-section-root > div[style*="display:flex"] > .vn-btn {
+      padding: 8px 4px;
+      font-size: 12px;
+      min-height: 40px;
+    }
+  }
+  
+  /* ============================================================
+     八、超小屏模态框（≤400）：按钮单列
+     ============================================================ */
+  @media (max-width: 400px) {
+    #vn-modal { width: 96vw; }
+    .vn-modal-footer .vn-btn,
+    .vn-modal-body div[style*="display:flex"][style*="gap:8px"] > .vn-btn,
+    #tts-section-root > div[style*="display:flex"] > .vn-btn {
+      min-height: 42px;
+    }
+  }
+  
+  /* ============================================================
+     九、横屏矮屏模态框
+     ============================================================ */
+  @media (max-height: 500px) and (orientation: landscape) {
+    #vn-modal { max-height: 94vh; }
+    .vn-modal-body { padding: 10px 14px; }
+    .vn-modal-footer { padding: 8px 14px; }
+  }
+  
+  /* ============================================================
+     十、减少动效
+     ============================================================ */
+  @media (prefers-reduced-motion: reduce) {
+    #vn-stage #vn-bg-layer > .vn-bg,
+    #vn-stage .vn-sprite-slot img.vn-sprite,
+    #vn-stage .vn-sprite-placeholder,
+    #vn-dialogue-box,
+    #vn-options-layer {
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  
