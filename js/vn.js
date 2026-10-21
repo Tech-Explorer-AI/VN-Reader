@@ -223,7 +223,7 @@
       const unlock = () => {
         this._ready = true;
         if (this.current && this.audio.paused) {
-          this.audio.play().catch(() => {});
+          this.audio.play().catch(() => { });
         }
         document.removeEventListener('click', unlock);
         document.removeEventListener('keydown', unlock);
@@ -281,7 +281,7 @@
 
       if (this._ready) {
         this.audio.volume = this.baseVolume;
-        this.audio.play().catch(() => {});
+        this.audio.play().catch(() => { });
       }
     },
 
@@ -366,7 +366,7 @@
             extraInfo: x.gender,
             __ttsIndex: x.__ttsIndex,
           }));
-        try { window.TTSPlayer.startPipeline(dialogues); } catch (e) {}
+        try { window.TTSPlayer.startPipeline(dialogues); } catch (e) { }
       }
 
       await this._runLoop();
@@ -415,70 +415,133 @@
         this._highlightSpeaker(null);
         return;
       }
-
+    
       const isPlayer = this._isPlayer(d.character);
-      const slotKey = d.position;
+      const isMobile = window.matchMedia('(max-width: 640px)').matches
+                    || (window.matchMedia('(max-height: 500px)').matches
+                        && window.matchMedia('(orientation: landscape)').matches);
+    
+      const slotKey = isMobile ? 'center' : d.position;
       const slotEl = document.querySelector(`.vn-sprite-slot[data-pos="${slotKey}"]`);
       if (!slotEl) return;
-
+    
       const currentOccupant = this._slots[slotKey];
-
-      // 同一个人 → 只更新状态/显隐
+      const newState = d.state || '默认';
+    
+      // ---- 同一个人 & 状态没变：只改显隐/高亮，不动 DOM ----
       if (currentOccupant === d.character) {
         const prevState = slotEl.dataset.spriteState || '默认';
-        const newState = d.state || '默认';
-        const stateChanged = (prevState !== newState);
-
-        if (!stateChanged) {
-          const img = slotEl.querySelector('img.vn-sprite, .vn-sprite-placeholder');
-          if (img) {
-            if (d.visibility === 'hidden') {
-              img.classList.add('hidden-state');
-            } else {
-              img.classList.remove('hidden-state');
-            }
+        if (prevState === newState) {
+          const img = slotEl.querySelector('img.vn-sprite.is-in, .vn-sprite-placeholder.is-in');
+          if (img && d.visibility === 'hidden') {
+            this._fadeOutSlot(slotEl);
+            this._slots[slotKey] = null;
+            slotEl.dataset.characterName = '';
           }
           this._highlightSpeaker(d.character);
           return;
         }
       }
-
-      // 重新构建
-      const state = d.state || '默认';
-
+    
+      // ---- 拿 URL ----
       let url = null;
-      if (isPlayer) {
-        url = await SpriteManager.getPlayerSprite(state);
-      } else {
-        url = await SpriteManager.get(d.character, d.gender || '默认', state);
+      if (isPlayer) url = await SpriteManager.getPlayerSprite(newState);
+      else          url = await SpriteManager.get(d.character, d.gender || '默认', newState);
+    
+      // ★ 关键：如果槽位里已经有这个角色，且新 URL 和当前 <img src> 完全一致，
+      //   说明这次"状态变化"其实没换图（玩家缺状态图 fallback 到同一张），
+      //   只需要更新 spriteState，不要走淡出淡入。
+      if (currentOccupant === d.character) {
+        const curImg = slotEl.querySelector('img.vn-sprite.is-in');
+        const curSrc = curImg ? curImg.getAttribute('src') : '';
+        const newUrl = url || '';
+        if (curSrc === newUrl) {
+          slotEl.dataset.spriteState = newState;   // 记录新状态，下次真正换图时才能判断
+          // 显隐处理
+          if (d.visibility === 'hidden') {
+            this._fadeOutSlot(slotEl);
+            this._slots[slotKey] = null;
+            slotEl.dataset.characterName = '';
+          } else {
+            this._highlightSpeaker(d.character);
+          }
+          return;
+        }
       }
-
-      slotEl.innerHTML = '';
-      slotEl.dataset.characterName = d.character;
-      slotEl.dataset.spriteState = state;
-      this._slots[slotKey] = d.character;
-
+    
+      // 隐藏：直接淡出
       if (d.visibility === 'hidden') {
-        slotEl.innerHTML = '';
-        this._slots[slotKey] = null;
+        if (this._slots[slotKey] === d.character) {
+          this._fadeOutSlot(slotEl);
+          this._slots[slotKey] = null;
+          slotEl.dataset.characterName = '';
+        }
+        slotEl.dataset.spriteState = newState;
         return;
       }
-
+    
+      // 预解码
       if (url) {
-        const img = document.createElement('img');
-        img.className = 'vn-sprite';
-        img.src = url;
-        img.alt = d.character;
-        img.title = d.character;
-        slotEl.appendChild(img);
-      } else {
-        const ph = document.createElement('div');
-        ph.className = 'vn-sprite-placeholder';
-        ph.textContent = d.character;
-        slotEl.appendChild(ph);
+        try {
+          const probe = new Image();
+          probe.src = url;
+          if (probe.decode) await probe.decode().catch(() => {});
+          else await new Promise(r => { probe.onload = r; probe.onerror = r; });
+        } catch (e) {}
       }
-
+    
+      // ★ 换人（hasOther）→ 顺序切换；同角色真换图 → 交叉淡入
+      const hasOther = currentOccupant && currentOccupant !== d.character;
+      const oldEls = slotEl.querySelectorAll('img.vn-sprite, .vn-sprite-placeholder');
+    
+      if (hasOther) {
+        oldEls.forEach(el => {
+          el.classList.remove('is-in');
+          el.classList.add('is-out');
+        });
+        await new Promise(r => setTimeout(r, 200));
+        slotEl.innerHTML = '';
+      } else {
+        oldEls.forEach(el => {
+          el.classList.remove('is-in');
+          el.classList.add('is-out');
+          setTimeout(() => el.remove(), 380);
+        });
+      }
+    
+      let newEl;
+      if (url) {
+        newEl = document.createElement('img');
+        newEl.className = 'vn-sprite';
+        newEl.src = url;
+        newEl.alt = d.character;
+        newEl.title = d.character;
+      } else {
+        newEl = document.createElement('div');
+        newEl.className = 'vn-sprite-placeholder';
+        newEl.textContent = d.character;
+      }
+      slotEl.appendChild(newEl);
+    
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => newEl.classList.add('is-in'));
+      });
+    
+      slotEl.dataset.characterName = d.character;
+      slotEl.dataset.spriteState = newState;
+      this._slots[slotKey] = d.character;
+    
       this._highlightSpeaker(d.character);
+    },
+
+    // ★ 新增：淡出整个槽位（隐藏角色时用）
+    _fadeOutSlot(slotEl) {
+      const els = slotEl.querySelectorAll('img.vn-sprite, .vn-sprite-placeholder');
+      els.forEach(el => {
+        el.classList.remove('is-in');
+        el.classList.add('is-out');
+        setTimeout(() => el.remove(), 380);
+      });
     },
 
     _highlightSpeaker(speakerName) {
@@ -537,7 +600,7 @@
           content: d.content,
           extraInfo: d.gender,
         };
-        ttsPromise = window.TTSPlayer.playFor(dlg, d.__ttsIndex).catch(() => {});
+        ttsPromise = window.TTSPlayer.playFor(dlg, d.__ttsIndex).catch(() => { });
         this._pendingTTS = ttsPromise;
       }
 
@@ -576,7 +639,7 @@
             ttsPromise,
             new Promise(r => setTimeout(r, 15000)),
           ]);
-        } catch (e) {}
+        } catch (e) { }
       }
       this._pendingTTS = null;
     },
@@ -590,7 +653,7 @@
         if (this._clickResolve) {
           const old = this._clickResolve;
           this._clickResolve = null;
-          try { old(); } catch (e) {}
+          try { old(); } catch (e) { }
         }
         this._clickResolve = resolve;
 
@@ -705,7 +768,7 @@
     // ============================================================
     skip() {
       if (!this.playing) return;
-      try { window.TTSPlayer?.abort?.(); } catch (e) {}
+      try { window.TTSPlayer?.abort?.(); } catch (e) { }
       this.playing = false;
       this._typingResolve = null;
       this._clickResolve = null;
@@ -726,7 +789,7 @@
     exitToShelf() {
       this.playing = false;
       this.isTyping = false;
-      try { window.TTSPlayer?.abort?.(); } catch (e) {}
+      try { window.TTSPlayer?.abort?.(); } catch (e) { }
       Music.stop();
       BG.clear();
       this.clearSprites();
@@ -803,7 +866,7 @@
       imgs.forEach(img => {
         const r = img.getBoundingClientRect();
         const hover = e.clientX >= r.left && e.clientX <= r.right
-                   && e.clientY >= r.top && e.clientY <= r.bottom;
+          && e.clientY >= r.top && e.clientY <= r.bottom;
         img.classList.toggle('is-hover', hover);
       });
     });
@@ -829,7 +892,7 @@
     });
     document.getElementById('btn-fullscreen').addEventListener('click', () => {
       if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen?.().catch(() => {});
+        document.documentElement.requestFullscreen?.().catch(() => { });
       } else {
         document.exitFullscreen?.();
       }

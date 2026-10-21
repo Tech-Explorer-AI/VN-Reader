@@ -932,7 +932,7 @@ prompt:
                 const btn = document.createElement('button');
                 btn.className = 'vn-btn';
                 btn.id = 'ch-bggen-batch';
-                btn.textContent = '🎨 批量生成背景';
+                btn.textContent = '🎨 批量背景';
                 btn.onclick = async () => {
                     const ch = State.getChapter(chapterId);
                     if (!ch || !ch.script) {

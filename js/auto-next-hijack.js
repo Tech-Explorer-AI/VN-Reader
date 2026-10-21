@@ -117,84 +117,137 @@
     // ============================================================
     function showNextChapterToast(nextCh) {
       return new Promise(resolve => {
-        // 移除旧的
         const old = document.getElementById('vn-autonext-toast');
         if (old) old.remove();
-  
+    
+        const isMobile = window.innerWidth <= 640;
+    
         const toast = document.createElement('div');
         toast.id = 'vn-autonext-toast';
-        toast.style.cssText = `
-          position: fixed;
-          bottom: 24px;
-          left: 50%;
-          transform: translateX(-50%) translateY(20px);
-          background: linear-gradient(135deg, rgba(102,126,234,.95), rgba(118,75,162,.95));
-          color: #fff;
-          padding: 14px 22px;
-          border-radius: 12px;
-          font-size: 13px;
-          z-index: 99999;
-          box-shadow: 0 8px 30px rgba(0,0,0,.6);
-          display: flex;
-          align-items: center;
-          gap: 14px;
-          opacity: 0;
-          transition: all .3s ease;
-          pointer-events: auto;
-        `;
-        toast.innerHTML = `
-          <span style="font-size:15px;">📖</span>
-          <span>即将进入下一章：<strong>${escapeHtml(nextCh.title)}</strong></span>
-          <span class="vn-autonext-countdown" style="font-size:16px;font-weight:700;
-            min-width:22px;text-align:center;">3</span>
-          <button class="vn-autonext-cancel" style="
-            background: rgba(0,0,0,.25);
-            border: 1px solid rgba(255,255,255,.3);
+    
+        // ---------- 只改这一块：两套内联样式 ----------
+        if (isMobile) {
+          // 手机：左右贴边，两行，按钮大块
+          toast.style.cssText = `
+            position: fixed;
+            left: 12px;
+            right: 12px;
+            bottom: 12px;
+            box-sizing: border-box;
+            background: linear-gradient(135deg, rgba(102,126,234,.95), rgba(118,75,162,.95));
             color: #fff;
-            padding: 4px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-            margin-left: 4px;
-          ">取消</button>
-          <button class="vn-autonext-go" style="
-            background: rgba(255,255,255,.2);
-            border: 1px solid rgba(255,255,255,.4);
+            padding: 12px 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            z-index: 99999;
+            box-shadow: 0 8px 30px rgba(0,0,0,.6);
+            display: grid;
+            grid-template-columns: 1fr auto;
+            grid-template-rows: auto auto;
+            align-items: center;
+            gap: 8px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all .3s ease;
+            pointer-events: auto;
+          `;
+        } else {
+          // 桌面：原样，只补个 max-width 防超长标题溢出
+          toast.style.cssText = `
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            max-width: min(680px, calc(100vw - 32px));
+            box-sizing: border-box;
+            transform: translateX(-50%) translateY(20px);
+            background: linear-gradient(135deg, rgba(102,126,234,.95), rgba(118,75,162,.95));
             color: #fff;
-            padding: 4px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-          ">立即</button>
-        `;
-  
+            padding: 14px 22px;
+            border-radius: 12px;
+            font-size: 13px;
+            z-index: 99999;
+            box-shadow: 0 8px 30px rgba(0,0,0,.6);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            opacity: 0;
+            transition: all .3s ease;
+            pointer-events: auto;
+          `;
+        }
+        // ---------- 样式改完 ----------
+    
+        toast.innerHTML = isMobile
+          ? `
+            <span style="grid-column:1/2;grid-row:1/2;min-width:0;
+              display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+              overflow:hidden;white-space:normal;">
+              即将进入下一章：<strong>${escapeHtml(nextCh.title)}</strong>
+            </span>
+            <span class="vn-autonext-countdown" style="
+              grid-column:2/3;grid-row:1/2;font-size:15px;font-weight:700;
+              min-width:20px;text-align:center;">3</span>
+            <div style="grid-column:1/3;grid-row:2/3;display:grid;
+              grid-template-columns:1fr 1fr;gap:8px;">
+              <button class="vn-autonext-cancel" style="
+                background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.3);
+                color:#fff;padding:9px 6px;border-radius:6px;font-size:13px;
+                cursor:pointer;min-height:38px;box-sizing:border-box;">取消</button>
+              <button class="vn-autonext-go" style="
+                background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);
+                color:#fff;padding:9px 6px;border-radius:6px;font-size:13px;
+                cursor:pointer;min-height:38px;box-sizing:border-box;">立即</button>
+            </div>
+          `
+          : `
+            <span style="font-size:15px;">📖</span>
+            <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;
+              white-space:nowrap;">
+              即将进入下一章：<strong>${escapeHtml(nextCh.title)}</strong>
+            </span>
+            <span class="vn-autonext-countdown" style="font-size:16px;font-weight:700;
+              min-width:22px;text-align:center;">3</span>
+            <button class="vn-autonext-cancel" style="
+              background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.3);
+              color:#fff;padding:4px 12px;border-radius:6px;font-size:12px;
+              cursor:pointer;white-space:nowrap;flex:0 0 auto;margin-left:4px;">取消</button>
+            <button class="vn-autonext-go" style="
+              background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);
+              color:#fff;padding:4px 12px;border-radius:6px;font-size:12px;
+              cursor:pointer;white-space:nowrap;flex:0 0 auto;">立即</button>
+          `;
+    
         document.body.appendChild(toast);
         void toast.offsetWidth;
+    
+        // 显示动画：只改 opacity 和 transform
         toast.style.opacity = '1';
-        toast.style.transform = 'translateX(-50%) translateY(0)';
-  
+        toast.style.transform = isMobile
+          ? 'translateY(0)'
+          : 'translateX(-50%) translateY(0)';
+    
         const countdownEl = toast.querySelector('.vn-autonext-countdown');
         let remaining = 3;
         let finished = false;
-  
+    
         const finish = (proceed) => {
           if (finished) return;
           finished = true;
           clearInterval(timer);
           toast.style.opacity = '0';
-          toast.style.transform = 'translateX(-50%) translateY(20px)';
+          toast.style.transform = isMobile
+            ? 'translateY(20px)'
+            : 'translateX(-50%) translateY(20px)';
           setTimeout(() => toast.remove(), 300);
           resolve(proceed);
         };
-  
+    
         const timer = setInterval(() => {
           remaining--;
           countdownEl.textContent = remaining > 0 ? remaining : '0';
-          if (remaining <= 0) {
-            finish(true);
-          }
+          if (remaining <= 0) finish(true);
         }, 1000);
-  
+    
         toast.querySelector('.vn-autonext-cancel').onclick = () => finish(false);
         toast.querySelector('.vn-autonext-go').onclick = () => finish(true);
       });

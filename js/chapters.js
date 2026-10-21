@@ -182,7 +182,7 @@
         const footerHTML = `
           <button class="vn-btn" id="ch-save-btn">💾 保存修改</button>
           <button class="vn-btn" id="ch-convert-btn">🤖 AI 转换</button>
-          <button class="vn-btn" id="ch-markers-btn" ${hasScript ? '' : 'disabled'}>🎨 场景 & 音乐</button>
+          <button class="vn-btn" id="ch-markers-btn" ${hasScript ? '' : 'disabled'}>🎨 图与音乐</button>
           <button class="vn-btn primary" id="ch-play-btn" ${hasScript ? '' : 'disabled'}>▶️ 播放</button>
           <button class="vn-btn danger" id="ch-del-btn">🗑️ 删除</button>
         `;
